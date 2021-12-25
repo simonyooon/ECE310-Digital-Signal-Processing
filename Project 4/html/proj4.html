@@ -1,0 +1,322 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>proj4</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-22"><meta name="DC.source" content="proj4.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Frequency Modulated Signals</a></li></ul></div><pre class="codeinput"><span class="comment">%Michael Bentivegna, Simon Yoon, Joya Debi</span>
+<span class="comment">%ECE310 DSP Project 4: Spectrogram Analysis and Applications</span>
+
+clear;
+clc;
+close <span class="string">all</span>;
+
+load (<span class="string">'s1.mat'</span>);
+load (<span class="string">'s5.mat'</span>);
+load (<span class="string">'vowels.mat'</span>);
+
+<span class="comment">% The objective of this project was to compute spectrograms of</span>
+<span class="comment">% given audio files to graphically observe the variation in frequency. And</span>
+<span class="comment">% with the addition of the windowing used to compute STFT, we can</span>
+<span class="comment">% manipulate the frequency resolution of the analysis. Through trying multiple</span>
+<span class="comment">% different powers of two for the window length and FFT size, we examined the</span>
+<span class="comment">% effect of changes in these parameters on the outputted spectrogram.</span>
+<span class="comment">% Graphical representations displayed the emphasis applied by the vocal</span>
+<span class="comment">% tract resonances. As an addition, we displayed how to change the rate of</span>
+<span class="comment">% speech of an audio file, a useful mechanism in DSP.</span>
+</pre><h2 id="2">Frequency Modulated Signals</h2><pre class="codeinput"><span class="comment">%Question 1</span>
+fs = 5 * 10^6;
+mu = 4 * 10^9;
+totalT = 200 * 10^-6;
+points = 256;
+
+t = linspace(0, totalT, 1000);
+x = cos(2*pi*mu*t.^2);
+
+spectrogram(x, triang(256), 255, 256, fs, <span class="string">'yaxis'</span>);
+title(<span class="string">"Discrete Time Linear FM Chirp Signal"</span>);
+
+<span class="comment">%Question 2</span>
+phi = 2*pi*mu*t.^2;
+freq = cos(phi);
+inst_freq1 = mu*t;
+inst_freq2 = 1./(2*pi)*diff(phi)/(t(2)-t(1));
+
+figure;
+plot(t,inst_freq1,t(1:end-1), inst_freq2);
+xlabel(<span class="string">'Time (s)'</span>);
+ylabel(<span class="string">'Frequency (Hz)'</span>);
+title(<span class="string">'Instantaneous Frequency'</span>);
+legend(<span class="string">'Definition 1'</span>, <span class="string">'Definition 2'</span>);
+
+<span class="comment">% Definition 2 corresponds more closely to the slope of the ridge in the spectrogram</span>
+<span class="comment">% plotted in Q1.</span>
+
+<span class="comment">%Question 3</span>
+mu = 1.0 * 10^10;
+x = cos(2*pi*mu*t.^2);
+
+figure;
+spectrogram(x, triang(256), 255, 256, fs, <span class="string">'yaxis'</span>);
+title(<span class="string">"Discrete Time Linear FM Chirp Signal"</span>);
+
+<span class="comment">% Changing the mu value to 1.0 * 10^10 increases the slope by approximately</span>
+<span class="comment">% a scale factor of 2. And around 120 microseconds, the slope becomes its</span>
+<span class="comment">% additive inverse.</span>
+
+<span class="comment">%Question 4</span>
+fs = 8*10^3;
+
+figure;
+subplot(2, 1, 1);
+spectrogram(s1, triang(1024), 1023, 1024, fs, <span class="string">'yaxis'</span>);
+title(<span class="string">'S1(\omega)'</span>);
+
+subplot(2, 1, 2);
+spectrogram(s5, triang(1024), 1023, 1024, fs, <span class="string">'yaxis'</span>);
+title(<span class="string">'S5(\omega)'</span>);
+
+<span class="comment">%Question 5</span>
+figure;
+subplot(2, 1, 1);
+spectrogram(s1, triang(512), 511, 512, fs, <span class="string">'yaxis'</span>);
+title(<span class="string">'S1(\omega)'</span>);
+
+subplot(2, 1, 2);
+spectrogram(s5, triang(512), 511, 512, fs, <span class="string">'yaxis'</span>);
+title(<span class="string">'S5(\omega)'</span>);
+
+<span class="comment">%Question 6</span>
+y = spectrogram(vowels, rectwin(256), 128, 1024, fs, <span class="string">'yaxis'</span>);
+y = [y; flipud(y)];
+output = invSTFT(y, 1024);
+
+figure;
+plot(vowels(1:size(output,1))-output);
+title(<span class="string">'Original vs Inverse STFT of Vowels.mat'</span>);
+xlabel(<span class="string">'n'</span>);
+ylabel(<span class="string">'Amplitude'</span>);
+
+<span class="comment">%soundsc(vowels, fs);</span>
+<span class="comment">%soundsc(output, fs);</span>
+
+<span class="comment">%Question 7</span>
+y = spectrogram(vowels, rectwin(256), 128, 1024, fs, <span class="string">'yaxis'</span>);
+y = y(:, (1:2:end));
+y = [y;flipud(y)];
+
+output = invSTFT(y, 1024);
+
+<span class="comment">%soundsc(output, fs);</span>
+
+<span class="keyword">function</span> output = invSTFT(signal, n)
+    temp = real(ifft(signal));
+    len = size(temp, 2);
+    output = zeros(n, len);
+
+    temp = temp( 1:256, : );
+    currentIndex=1;
+
+    <span class="keyword">for</span> i = 1:len
+        output(currentIndex:currentIndex+255, i) = temp( :,i);
+        currentIndex = currentIndex + 128;
+    <span class="keyword">end</span>
+
+    output = sum(output, 2);
+    output(129:length(output) - 128) = output(129:length(output) - 128) / 2;
+
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="proj4_01.png" alt=""> <img vspace="5" hspace="5" src="proj4_02.png" alt=""> <img vspace="5" hspace="5" src="proj4_03.png" alt=""> <img vspace="5" hspace="5" src="proj4_04.png" alt=""> <img vspace="5" hspace="5" src="proj4_05.png" alt=""> <img vspace="5" hspace="5" src="proj4_06.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%Michael Bentivegna, Simon Yoon, Joya Debi
+%ECE310 DSP Project 4: Spectrogram Analysis and Applications
+
+clear;
+clc;
+close all;
+
+load ('s1.mat');
+load ('s5.mat');
+load ('vowels.mat');
+
+% The objective of this project was to compute spectrograms of
+% given audio files to graphically observe the variation in frequency. And
+% with the addition of the windowing used to compute STFT, we can
+% manipulate the frequency resolution of the analysis. Through trying multiple
+% different powers of two for the window length and FFT size, we examined the
+% effect of changes in these parameters on the outputted spectrogram.
+% Graphical representations displayed the emphasis applied by the vocal
+% tract resonances. As an addition, we displayed how to change the rate of
+% speech of an audio file, a useful mechanism in DSP. 
+
+%% Frequency Modulated Signals
+
+%Question 1
+fs = 5 * 10^6;
+mu = 4 * 10^9;
+totalT = 200 * 10^-6;
+points = 256;
+
+t = linspace(0, totalT, 1000);
+x = cos(2*pi*mu*t.^2);
+
+spectrogram(x, triang(256), 255, 256, fs, 'yaxis');
+title("Discrete Time Linear FM Chirp Signal");
+
+%Question 2
+phi = 2*pi*mu*t.^2;
+freq = cos(phi);
+inst_freq1 = mu*t; 
+inst_freq2 = 1./(2*pi)*diff(phi)/(t(2)-t(1));
+
+figure;
+plot(t,inst_freq1,t(1:end-1), inst_freq2);
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('Instantaneous Frequency');
+legend('Definition 1', 'Definition 2');
+
+% Definition 2 corresponds more closely to the slope of the ridge in the spectrogram
+% plotted in Q1. 
+
+%Question 3
+mu = 1.0 * 10^10;
+x = cos(2*pi*mu*t.^2);
+
+figure; 
+spectrogram(x, triang(256), 255, 256, fs, 'yaxis');
+title("Discrete Time Linear FM Chirp Signal"); 
+
+% Changing the mu value to 1.0 * 10^10 increases the slope by approximately
+% a scale factor of 2. And around 120 microseconds, the slope becomes its
+% additive inverse. 
+
+%Question 4
+fs = 8*10^3;
+
+figure;
+subplot(2, 1, 1);
+spectrogram(s1, triang(1024), 1023, 1024, fs, 'yaxis');
+title('S1(\omega)');
+
+subplot(2, 1, 2);
+spectrogram(s5, triang(1024), 1023, 1024, fs, 'yaxis');
+title('S5(\omega)');
+
+%Question 5
+figure;
+subplot(2, 1, 1);
+spectrogram(s1, triang(512), 511, 512, fs, 'yaxis');
+title('S1(\omega)');
+
+subplot(2, 1, 2);
+spectrogram(s5, triang(512), 511, 512, fs, 'yaxis'); 
+title('S5(\omega)');
+
+%Question 6
+y = spectrogram(vowels, rectwin(256), 128, 1024, fs, 'yaxis');
+y = [y; flipud(y)];
+output = invSTFT(y, 1024);
+
+figure; 
+plot(vowels(1:size(output,1))-output);
+title('Original vs Inverse STFT of Vowels.mat');
+xlabel('n');
+ylabel('Amplitude'); 
+
+%soundsc(vowels, fs);
+%soundsc(output, fs); 
+
+%Question 7 
+y = spectrogram(vowels, rectwin(256), 128, 1024, fs, 'yaxis');
+y = y(:, (1:2:end));
+y = [y;flipud(y)];
+
+output = invSTFT(y, 1024);
+
+%soundsc(output, fs); 
+
+function output = invSTFT(signal, n) 
+    temp = real(ifft(signal));
+    len = size(temp, 2);
+    output = zeros(n, len);
+    
+    temp = temp( 1:256, : );
+    currentIndex=1;
+  
+    for i = 1:len
+        output(currentIndex:currentIndex+255, i) = temp( :,i);
+        currentIndex = currentIndex + 128; 
+    end
+    
+    output = sum(output, 2);
+    output(129:length(output) - 128) = output(129:length(output) - 128) / 2;
+    
+end
+
+
+##### SOURCE END #####
+--></body></html>

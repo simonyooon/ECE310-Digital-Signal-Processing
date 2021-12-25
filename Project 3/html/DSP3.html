@@ -1,0 +1,288 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DSP3</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-01"><meta name="DC.source" content="DSP3.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Setup</a></li><li><a href="#3">Butterworth Filter</a></li><li><a href="#4">ChebyshevI Filter</a></li><li><a href="#5">ChebyshevII Filter</a></li><li><a href="#6">Elliptic Filter</a></li><li><a href="#7">Parks-McClellan Filter</a></li><li><a href="#8">Kaiser Filter</a></li><li><a href="#9">Qualitative Analysis of Sounds</a></li><li><a href="#10">Functions</a></li></ul></div><pre class="codeinput"><span class="comment">%Michael Bentivegna, Simon Yoon, Joya Debi</span>
+<span class="comment">%ECE310 DSP : Enhancing Speech by Removing Noise</span>
+
+clear;
+clc;
+close <span class="string">all</span>;
+
+<span class="comment">% This project uses 6 different lowpass filters to remove a high</span>
+<span class="comment">% frequency hissing noise from an given audio file.  Each filter is properly</span>
+<span class="comment">% implemented in MATLAB using the given specifications.  The order of</span>
+<span class="comment">% the filter and number of multiplication operations needed is</span>
+<span class="comment">% calculated before graphing. The filtered sound is then played to test</span>
+<span class="comment">% its efficacy.</span>
+</pre><h2 id="2">Setup</h2><pre class="codeinput"><span class="comment">% Load in data and listen to test sound</span>
+load (<span class="string">'projIB.mat'</span>);
+sound(noisy,fs);
+
+<span class="comment">% Create each filter using proper specifications</span>
+Butterworth = designfilt(<span class="string">'lowpassiir'</span>,<span class="string">'PassbandFrequency'</span>,2500, <span class="string">'StopbandFrequency'</span>,4000,<span class="string">'PassbandRipple'</span>,3,<span class="string">'StopbandAttenuation'</span>,55,<span class="string">'SampleRate'</span>,fs,<span class="string">'DesignMethod'</span>,<span class="string">'butter'</span>);
+ChebyshevI = designfilt(<span class="string">'lowpassiir'</span>,<span class="string">'PassbandFrequency'</span>,2500,<span class="string">'StopbandFrequency'</span>,4000,<span class="string">'PassbandRipple'</span>,3,<span class="string">'StopbandAttenuation'</span>,55,<span class="string">'SampleRate'</span>,fs,<span class="string">'DesignMethod'</span>,<span class="string">'cheby1'</span>);
+ChebyshevII = designfilt(<span class="string">'lowpassiir'</span>,<span class="string">'PassbandFrequency'</span>,2500, <span class="string">'StopbandFrequency'</span>,4000,<span class="string">'PassbandRipple'</span>,3, <span class="string">'StopbandAttenuation'</span>,55,<span class="string">'SampleRate'</span>,fs,<span class="string">'DesignMethod'</span>,<span class="string">'cheby2'</span>);
+Elliptic = designfilt(<span class="string">'lowpassiir'</span>,<span class="string">'PassbandFrequency'</span>,2500,<span class="string">'StopbandFrequency'</span>,4000,<span class="string">'PassbandRipple'</span>,3, <span class="string">'StopbandAttenuation'</span>,55,<span class="string">'SampleRate'</span>,fs,<span class="string">'DesignMethod'</span>,<span class="string">'ellip'</span>);
+ParksMcClellan = designfilt(<span class="string">'lowpassfir'</span>,<span class="string">'PassbandFrequency'</span>,2500,<span class="string">'StopbandFrequency'</span>,4000,<span class="string">'PassbandRipple'</span>,3,<span class="string">'StopbandAttenuation'</span>,55,<span class="string">'SampleRate'</span>,fs,<span class="string">'DesignMethod'</span>,<span class="string">'equiripple'</span>);
+Kaiser = designfilt(<span class="string">'lowpassfir'</span>,<span class="string">'PassbandFrequency'</span>,2500,<span class="string">'StopbandFrequency'</span>,4000,<span class="string">'PassbandRipple'</span>,3,<span class="string">'StopbandAttenuation'</span>,55,<span class="string">'SampleRate'</span>,fs,<span class="string">'DesignMethod'</span>,<span class="string">'kaiserwin'</span>);
+</pre><h2 id="3">Butterworth Filter</h2><pre class="codeinput">orderAndMultFinder(Butterworth, <span class="string">"Butterworth"</span>)
+graphing(Butterworth, fs, noisy, <span class="string">"Butterworth"</span>);
+</pre><img vspace="5" hspace="5" src="DSP3_01.png" alt=""> <img vspace="5" hspace="5" src="DSP3_02.png" alt=""> <img vspace="5" hspace="5" src="DSP3_03.png" alt=""> <h2 id="4">ChebyshevI Filter</h2><pre class="codeinput">orderAndMultFinder(ChebyshevI, <span class="string">"Chebyshev Type I"</span>)
+graphing(ChebyshevI, fs, noisy, <span class="string">"Chebyshev Type I"</span>)
+</pre><pre class="codeoutput">The order of the Chebyshev Type I filter is 7
+The number of mulitplying operations for the Chebyshev Type I filter is 16
+</pre><img vspace="5" hspace="5" src="DSP3_04.png" alt=""> <img vspace="5" hspace="5" src="DSP3_05.png" alt=""> <img vspace="5" hspace="5" src="DSP3_06.png" alt=""> <h2 id="5">ChebyshevII Filter</h2><pre class="codeinput">orderAndMultFinder(ChebyshevII, <span class="string">"Chebyshev Type II"</span>)
+graphing(ChebyshevII, fs, noisy, <span class="string">"Chebyshev Type II"</span>)
+</pre><pre class="codeoutput">The order of the Chebyshev Type II filter is 7
+The number of mulitplying operations for the Chebyshev Type II filter is 16
+</pre><img vspace="5" hspace="5" src="DSP3_07.png" alt=""> <img vspace="5" hspace="5" src="DSP3_08.png" alt=""> <img vspace="5" hspace="5" src="DSP3_09.png" alt=""> <h2 id="6">Elliptic Filter</h2><pre class="codeinput">orderAndMultFinder(Elliptic, <span class="string">"Elliptic"</span>)
+graphing(Elliptic, fs, noisy, <span class="string">"Elliptic"</span>)
+</pre><pre class="codeoutput">The order of the Elliptic filter is 5
+The number of mulitplying operations for the Elliptic filter is 12
+</pre><img vspace="5" hspace="5" src="DSP3_10.png" alt=""> <img vspace="5" hspace="5" src="DSP3_11.png" alt=""> <img vspace="5" hspace="5" src="DSP3_12.png" alt=""> <h2 id="7">Parks-McClellan Filter</h2><pre class="codeinput">orderAndMultFinder(ParksMcClellan, <span class="string">"Parks-McClellan"</span>)
+graphing(ParksMcClellan, fs, noisy, <span class="string">"Parks-McClellan"</span>)
+</pre><pre class="codeoutput">The order of the Parks-McClellan filter is 49
+The number of mulitplying operations for the Parks-McClellan filter is 51
+</pre><img vspace="5" hspace="5" src="DSP3_13.png" alt=""> <img vspace="5" hspace="5" src="DSP3_14.png" alt=""> <img vspace="5" hspace="5" src="DSP3_15.png" alt=""> <h2 id="8">Kaiser Filter</h2><pre class="codeinput">orderAndMultFinder(Kaiser, <span class="string">"Kaiser"</span>)
+graphing(Kaiser, fs, noisy, <span class="string">"Kaiser"</span>)
+</pre><h2 id="9">Qualitative Analysis of Sounds</h2><pre class="codeinput"><span class="comment">% All of the filters were able to make the sentence "That noise problem</span>
+<span class="comment">% grows more annoying each day" audible.  However, the Butterworth and</span>
+<span class="comment">% Chebyshev Type I were able to do it with less background noise than the</span>
+<span class="comment">% others.  This implies that the other filters did not properly filter</span>
+<span class="comment">% out all of the necessary high frequency signals.</span>
+</pre><h2 id="10">Functions</h2><pre class="codeinput"><span class="comment">%Find the order of the filter and the number of multiplication operations</span>
+<span class="keyword">function</span> orderAndMultFinder(filter, name)
+    order = filtord(filter);
+    fprintf(<span class="string">"The order of the %s filter is %d\n"</span>, name, order);
+
+    [b,a] = tf(filter);
+    multOps = length(a) + length(b);
+    fprintf(<span class="string">"The number of mulitplying operations for the %s filter is %d\n"</span>, name, multOps);
+<span class="keyword">end</span>
+
+<span class="comment">%Creates necessary graphs and plays filtered sounds</span>
+<span class="keyword">function</span> graphing(filters, fs, noisy, name)
+    [H,f] = freqz(filters, fs);
+    H_log = 20*log10(abs(H));
+
+    figure(1);
+    subplot(3,1,1);
+    plot(f, H_log);
+    title (<span class="string">'Magnitude Response of the '</span> + name + <span class="string">' Filter'</span>);
+    xlabel(<span class="string">'Frequency'</span>);
+    ylabel(<span class="string">'Magnitude(dB)'</span>);
+
+    subplot(3,1,2);
+    plot(f,abs(H));
+    xlim([0.3, 0.5]);
+    title (<span class="string">'Passband Ripple of the '</span> + name + <span class="string">' Filter'</span>);
+    xlabel(<span class="string">'Frequency'</span>);
+    ylabel(<span class="string">'Magnitude (Linear Scale)'</span>);
+
+    subplot(3,1,3);
+    [gd,w] = grpdelay(filters, fs);
+    plot(w,gd);
+    title (<span class="string">'Group Delay in the '</span> + name + <span class="string">' Filter'</span>);
+    xlabel (<span class="string">'Frequency'</span>);
+    ylabel (<span class="string">'Sample Delay'</span>);
+
+    figure(2);
+    [hz, hp, ~] = zplane(filters);
+    zplane(hz,hp);
+    title(<span class="string">'Pole-Zero plot for the '</span> + name + <span class="string">' Filter'</span>);
+
+    figure(3);
+    [h,t] = impz(filters, 100);
+    stem(t,h);
+    title(<span class="string">'Impulse Response for the '</span> + name + <span class="string">' Filter'</span>);
+    xlabel(<span class="string">'Samples'</span>);
+    ylabel(<span class="string">'Magnitude'</span>);
+
+    filtered = filter(filters, noisy);
+    soundsc(filtered, fs)
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">The order of the Butterworth filter is 14
+The number of mulitplying operations for the Butterworth filter is 30
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%Michael Bentivegna, Simon Yoon, Joya Debi
+%ECE310 DSP : Enhancing Speech by Removing Noise
+
+clear;
+clc;
+close all;
+
+% This project uses 6 different lowpass filters to remove a high
+% frequency hissing noise from an given audio file.  Each filter is properly
+% implemented in MATLAB using the given specifications.  The order of 
+% the filter and number of multiplication operations needed is 
+% calculated before graphing. The filtered sound is then played to test 
+% its efficacy.
+%% Setup
+
+% Load in data and listen to test sound
+load ('projIB.mat');
+sound(noisy,fs);  
+
+% Create each filter using proper specifications
+Butterworth = designfilt('lowpassiir','PassbandFrequency',2500, 'StopbandFrequency',4000,'PassbandRipple',3,'StopbandAttenuation',55,'SampleRate',fs,'DesignMethod','butter'); 
+ChebyshevI = designfilt('lowpassiir','PassbandFrequency',2500,'StopbandFrequency',4000,'PassbandRipple',3,'StopbandAttenuation',55,'SampleRate',fs,'DesignMethod','cheby1');     
+ChebyshevII = designfilt('lowpassiir','PassbandFrequency',2500, 'StopbandFrequency',4000,'PassbandRipple',3, 'StopbandAttenuation',55,'SampleRate',fs,'DesignMethod','cheby2');
+Elliptic = designfilt('lowpassiir','PassbandFrequency',2500,'StopbandFrequency',4000,'PassbandRipple',3, 'StopbandAttenuation',55,'SampleRate',fs,'DesignMethod','ellip');     
+ParksMcClellan = designfilt('lowpassfir','PassbandFrequency',2500,'StopbandFrequency',4000,'PassbandRipple',3,'StopbandAttenuation',55,'SampleRate',fs,'DesignMethod','equiripple');        
+Kaiser = designfilt('lowpassfir','PassbandFrequency',2500,'StopbandFrequency',4000,'PassbandRipple',3,'StopbandAttenuation',55,'SampleRate',fs,'DesignMethod','kaiserwin');
+
+%% Butterworth Filter
+orderAndMultFinder(Butterworth, "Butterworth")
+graphing(Butterworth, fs, noisy, "Butterworth");
+
+%% ChebyshevI Filter
+orderAndMultFinder(ChebyshevI, "Chebyshev Type I")
+graphing(ChebyshevI, fs, noisy, "Chebyshev Type I")
+
+%% ChebyshevII Filter
+orderAndMultFinder(ChebyshevII, "Chebyshev Type II")
+graphing(ChebyshevII, fs, noisy, "Chebyshev Type II")
+
+%% Elliptic Filter
+orderAndMultFinder(Elliptic, "Elliptic")
+graphing(Elliptic, fs, noisy, "Elliptic")
+
+%% Parks-McClellan Filter
+orderAndMultFinder(ParksMcClellan, "Parks-McClellan")
+graphing(ParksMcClellan, fs, noisy, "Parks-McClellan")
+
+%% Kaiser Filter
+orderAndMultFinder(Kaiser, "Kaiser")
+graphing(Kaiser, fs, noisy, "Kaiser")
+
+%% Qualitative Analysis of Sounds
+
+% All of the filters were able to make the sentence "That noise problem
+% grows more annoying each day" audible.  However, the Butterworth and
+% Chebyshev Type I were able to do it with less background noise than the
+% others.  This implies that the other filters did not properly filter
+% out all of the necessary high frequency signals.
+
+%% Functions
+
+%Find the order of the filter and the number of multiplication operations
+function orderAndMultFinder(filter, name)
+    order = filtord(filter);
+    fprintf("The order of the %s filter is %d\n", name, order);
+    
+    [b,a] = tf(filter);
+    multOps = length(a) + length(b);
+    fprintf("The number of mulitplying operations for the %s filter is %d\n", name, multOps);
+end
+
+%Creates necessary graphs and plays filtered sounds
+function graphing(filters, fs, noisy, name)
+    [H,f] = freqz(filters, fs);
+    H_log = 20*log10(abs(H));
+    
+    figure(1);
+    subplot(3,1,1);
+    plot(f, H_log);
+    title ('Magnitude Response of the ' + name + ' Filter');
+    xlabel('Frequency');
+    ylabel('Magnitude(dB)');
+    
+    subplot(3,1,2);
+    plot(f,abs(H));
+    xlim([0.3, 0.5]);
+    title ('Passband Ripple of the ' + name + ' Filter');
+    xlabel('Frequency');  
+    ylabel('Magnitude (Linear Scale)');
+    
+    subplot(3,1,3);
+    [gd,w] = grpdelay(filters, fs);
+    plot(w,gd);
+    title ('Group Delay in the ' + name + ' Filter');
+    xlabel ('Frequency');
+    ylabel ('Sample Delay');
+    
+    figure(2);
+    [hz, hp, ~] = zplane(filters); 
+    zplane(hz,hp);
+    title('Pole-Zero plot for the ' + name + ' Filter');
+    
+    figure(3);
+    [h,t] = impz(filters, 100); 
+    stem(t,h);
+    title('Impulse Response for the ' + name + ' Filter');
+    xlabel('Samples');
+    ylabel('Magnitude');
+    
+    filtered = filter(filters, noisy);
+    soundsc(filtered, fs)
+end
+
+##### SOURCE END #####
+--></body></html>

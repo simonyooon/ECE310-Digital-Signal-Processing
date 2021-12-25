@@ -1,0 +1,271 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DSP1</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-10-04"><meta name="DC.source" content="DSP1.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Main</a></li><li><a href="#3">Functions</a></li></ul></div><pre class="codeinput"><span class="comment">%Michael Bentivegna, Simon Yoon, Joya Debi</span>
+<span class="comment">%ECE310 DSP : Sample Rate Converter</span>
+
+clear;
+clc;
+close <span class="string">all</span>;
+
+<span class="comment">%This program processes a specified input file sampled at 11025 Hz and</span>
+<span class="comment">%changes the sampling rate to 24000 Hz.  Since the ratio of new sampling</span>
+<span class="comment">%rate to old sampling rate was quite complex, a multistage approach was</span>
+<span class="comment">%chosen to minimize computational complexity.  This was completed by iteratively</span>
+<span class="comment">%passing the data through simpler converters.  The upsampling function uses</span>
+<span class="comment">%a polyphase filtering approach to help properly interpolate the data.  The</span>
+<span class="comment">%downsampling function simply scales the DSP Toolbox downsample() function and</span>
+<span class="comment">%does not need to be refiltered since min(pi/L, pi/M) ensures that the</span>
+<span class="comment">%filtering process prior to upsampling properly prevents the sound from aliasing. The</span>
+<span class="comment">%verify function in the data shows that the program meets all</span>
+<span class="comment">%specifications as the project outlines.</span>
+</pre><h2 id="2">Main</h2><pre class="codeinput"><span class="comment">%Process input file</span>
+[x,fs] = audioread(<span class="string">'Wagner.wav'</span>);
+
+<span class="comment">%Make sure the resampling satisfies given parameters on test case</span>
+y = srconvert([1 zeros(1,3000)]);
+verify(y);
+
+<span class="comment">%Convert actual sound input</span>
+z = srconvert(transpose(x));
+
+<span class="comment">%Play orginal sound followed by the newly sampled version</span>
+sound(x, fs);
+pause(10);
+sound(z, 24000);
+</pre><h2 id="3">Functions</h2><pre class="codeinput"><span class="comment">%Mission control</span>
+<span class="keyword">function</span> [x] = srconvert(x)
+    <span class="comment">%Upsampling and filter loop</span>
+    SamplingVectorUp = [2, 2, 2, 2, 2, 2, 5]; <span class="comment">% prime factorization of 320</span>
+    SamplingVectorDown = [7, 7, 3]; <span class="comment">% prime factorization of 147</span>
+
+    <span class="comment">%Compoundingly upsample for each prime factorization of 320</span>
+    <span class="keyword">for</span> i = 1:length(SamplingVectorUp)
+        [x] = upSampleFunc(x, SamplingVectorUp(i));
+    <span class="keyword">end</span>
+
+    <span class="comment">%Compoundingly downsample for each prime factorization of 147</span>
+    <span class="keyword">for</span> j = 1:length(SamplingVectorDown)
+        [x] = downSampleFunc(x, SamplingVectorDown(j));
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">%Upsample the input using polyphase filtering with interpolation</span>
+<span class="keyword">function</span> [outputU] = upSampleFunc(inputU, L)
+
+    <span class="comment">%Repeats the input in multiple rows</span>
+    x = bsxfun(@times,ones(L,1), inputU);
+
+    <span class="comment">%Creates proper filter and uses poly1 to decompose it</span>
+    filter = designfilt(<span class="string">'lowpassfir'</span>, <span class="string">'PassbandFrequency'</span>, 1/L, <span class="string">'StopbandFrequency'</span>, 1.2/L, <span class="string">'PassbandRipple'</span>, 0.02, <span class="string">'StopbandAttenuation'</span>, 90, <span class="string">'DesignMethod'</span>, <span class="string">'equiripple'</span>);
+    E = poly1(filter.Coefficients, L);
+
+    <span class="comment">%Declare size using known properties of discrete convolution</span>
+    filtered = zeros(L,length(E) + length(x) - 1);
+
+    <span class="comment">%Use convolution to filter the input at each polyphase level</span>
+    <span class="keyword">for</span> n = 1:L
+        filtered(n,:) = conv(E(n,:), x(n,:));
+    <span class="keyword">end</span>
+
+    <span class="comment">%Declare upsampled matrix</span>
+    upS = zeros(L,L*(length(filtered)));
+
+    <span class="comment">%Upsample the filtered input and properly interpolate the data</span>
+    <span class="keyword">for</span> n = 1:L
+        upS(n,:) = upsample(filtered(n,:), L);
+        upS(n,:) = circshift(upS(n,:),n-1);
+    <span class="keyword">end</span>
+    outputU = sum(upS);
+
+<span class="keyword">end</span>
+
+<span class="comment">%Simple downsampling function</span>
+<span class="comment">%No need to filter again since L &gt; M (guarantees no aliasing from M when filtering the upsample)</span>
+<span class="keyword">function</span> [outputD] = downSampleFunc(inputD, M)
+
+    outputD = M*downsample(inputD, M);
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+ans =
+
+    'Passband Ripple:       0.078 dB 
+     '
+
+
+ans =
+
+    'Groupdelay Variation:  1.882480e-03   samples 
+     '
+
+
+ans =
+
+    'Stopband Attenuation:  -80.208 dB 
+     '
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%Michael Bentivegna, Simon Yoon, Joya Debi
+%ECE310 DSP : Sample Rate Converter
+
+clear;
+clc;
+close all;
+
+%This program processes a specified input file sampled at 11025 Hz and
+%changes the sampling rate to 24000 Hz.  Since the ratio of new sampling
+%rate to old sampling rate was quite complex, a multistage approach was 
+%chosen to minimize computational complexity.  This was completed by iteratively
+%passing the data through simpler converters.  The upsampling function uses
+%a polyphase filtering approach to help properly interpolate the data.  The
+%downsampling function simply scales the DSP Toolbox downsample() function and
+%does not need to be refiltered since min(pi/L, pi/M) ensures that the
+%filtering process prior to upsampling properly prevents the sound from aliasing. The
+%verify function in the data shows that the program meets all
+%specifications as the project outlines.
+
+%% Main
+
+%Process input file
+[x,fs] = audioread('Wagner.wav');
+
+%Make sure the resampling satisfies given parameters on test case
+y = srconvert([1 zeros(1,3000)]);
+verify(y); 
+
+%Convert actual sound input
+z = srconvert(transpose(x));
+
+%Play orginal sound followed by the newly sampled version
+sound(x, fs);
+pause(10);
+sound(z, 24000);
+
+
+%% Functions
+
+%Mission control
+function [x] = srconvert(x)
+    %Upsampling and filter loop
+    SamplingVectorUp = [2, 2, 2, 2, 2, 2, 5]; % prime factorization of 320
+    SamplingVectorDown = [7, 7, 3]; % prime factorization of 147
+    
+    %Compoundingly upsample for each prime factorization of 320
+    for i = 1:length(SamplingVectorUp)
+        [x] = upSampleFunc(x, SamplingVectorUp(i)); 
+    end
+    
+    %Compoundingly downsample for each prime factorization of 147
+    for j = 1:length(SamplingVectorDown)
+        [x] = downSampleFunc(x, SamplingVectorDown(j));
+    end
+end
+
+%Upsample the input using polyphase filtering with interpolation
+function [outputU] = upSampleFunc(inputU, L) 
+    
+    %Repeats the input in multiple rows
+    x = bsxfun(@times,ones(L,1), inputU);
+    
+    %Creates proper filter and uses poly1 to decompose it 
+    filter = designfilt('lowpassfir', 'PassbandFrequency', 1/L, 'StopbandFrequency', 1.2/L, 'PassbandRipple', 0.02, 'StopbandAttenuation', 90, 'DesignMethod', 'equiripple');
+    E = poly1(filter.Coefficients, L);
+    
+    %Declare size using known properties of discrete convolution
+    filtered = zeros(L,length(E) + length(x) - 1);
+    
+    %Use convolution to filter the input at each polyphase level
+    for n = 1:L
+        filtered(n,:) = conv(E(n,:), x(n,:));
+    end
+    
+    %Declare upsampled matrix
+    upS = zeros(L,L*(length(filtered)));
+    
+    %Upsample the filtered input and properly interpolate the data
+    for n = 1:L
+        upS(n,:) = upsample(filtered(n,:), L);
+        upS(n,:) = circshift(upS(n,:),n-1);
+    end  
+    outputU = sum(upS);    
+    
+end
+
+%Simple downsampling function
+%No need to filter again since L > M (guarantees no aliasing from M when filtering the upsample)
+function [outputD] = downSampleFunc(inputD, M)
+
+    outputD = M*downsample(inputD, M);
+
+end
+
+##### SOURCE END #####
+--></body></html>
